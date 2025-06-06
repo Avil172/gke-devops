@@ -24,7 +24,9 @@ jobs:
           terraform_version: 1.3.0
 
       - name: Create SA key file
-        run: echo '${{ secrets.GCP_SA_KEY }}' > ./terraform/sa-key.json
+        run: |
+            mkdir -p ./terraform
+            echo '${{ secrets.GCP_SA_KEY }}' > ./terraform/sa-key.json
 
       - name: Terraform Init
         run: terraform init -reconfigure
