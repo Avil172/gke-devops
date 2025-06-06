@@ -78,7 +78,9 @@ Contains:
 - `variables.tf`
 - `outputs.tf`
 
-🖼️ **[Terraform Deployment Proof (Screenshots)](./screenshots/terraform-resources/)**  
+🖼️ **[Terraform Output Proof (Screenshots)](./screenshots/terraform/terraform-outputs.png)**  
+🖼️ **[Terraform Backend Proof (Screenshots)](./screenshots/terraform/terraform-backend.png)**  
+
 Includes:
 - Cloud console views of infrastructure provisioned via Terraform
 
