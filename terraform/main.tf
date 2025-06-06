@@ -7,8 +7,8 @@ terraform {
   }
 
   backend "gcs" {
-    bucket  = "tf-state-gke-devops"
-    prefix  = "terraform/state"
+    bucket = "tf-state-gke-devops"
+    prefix = "terraform/state"
   }
 }
 
@@ -46,14 +46,3 @@ data "google_compute_instance" "practice_vm" {
   zone = google_compute_instance.practice_vm.zone
 }
 
-output "instance_name" {
-  value = google_compute_instance.practice_vm.name
-}
-
-output "instance_zone" {
-  value = google_compute_instance.practice_vm.zone
-}
-
-output "instance_external_ip" {
-  value = google_compute_instance.practice_vm.network_interface[0].access_config[0].nat_ip
-}
