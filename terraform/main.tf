@@ -15,11 +15,11 @@ terraform {
 }
 
 provider "google" {
-  credentials = null
-  project     = var.project_id
-  region      = var.region
-  zone        = var.zone
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
 }
+
 
 resource "google_compute_instance" "practice_vm" {
   name         = "practice-vm"
