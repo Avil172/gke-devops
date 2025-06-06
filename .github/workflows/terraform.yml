@@ -3,9 +3,14 @@ name: Terraform
 on:
   workflow_dispatch:
 
+env:
+  TF_VAR_project_id: ${{ secrets.GCP_PROJECT }}
+  TF_VAR_zone: ${{ secrets.GKE_ZONE }}
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Prevent infinite hangs
 
     steps:
     - name: Checkout
@@ -13,28 +18,30 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false  # Important for GCP auth
 
     - name: Setup GCP Auth
+      id: auth
       run: |
         echo '${{ secrets.GCP_SA_KEY }}' > sa_key.json
-        echo "TF_VAR_project_id=${{ secrets.GCP_PROJECT }}" >> $GITHUB_ENV
-        echo "TF_VAR_zone=${{ secrets.GKE_ZONE }}" >> $GITHUB_ENV
+        gcloud auth activate-service-account --key-file=sa_key.json
+        gcloud config set project ${{ secrets.GCP_PROJECT }}
+      working-directory: ./terraform
+
+    - name: Enable Compute API
+      run: gcloud services enable compute.googleapis.com
       working-directory: ./terraform
 
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -input=false
       working-directory: ./terraform
-      env:
-        GOOGLE_CREDENTIALS: sa_key.json
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: ./terraform
 
     - name: Terraform Plan
-      run: terraform plan
+      run: terraform plan -input=false -no-color
       working-directory: ./terraform
-      env:
-        GOOGLE_CREDENTIALS: sa_key.json
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: ./terraform
-      env:
-        GOOGLE_CREDENTIALS: sa_key.json
+      timeout-minutes: 5  # Fail fast if stuck
