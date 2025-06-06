@@ -1,0 +1,12 @@
+replicaCount: 2
+
+image:
+  repository: gcr.io/YOUR_PROJECT_ID/nginx-custom
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+
+resources: {}
