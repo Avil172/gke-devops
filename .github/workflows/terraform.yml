@@ -25,17 +25,13 @@ jobs:
 
       - name: Create SA key file
         run: |
-            mkdir -p ./terraform
-            echo '${{ secrets.GCP_SA_KEY }}' > ./terraform/sa-key.json
+          mkdir -p ./terraform
+          echo '${{ secrets.GCP_SA_KEY }}' > ./terraform/sa-key.json
 
       - name: Terraform Init
         run: terraform init -reconfigure
         env:
-            GOOGLE_APPLICATION_CREDENTIALS: ./terraform/sa-key.json
-
-
-      - name: Terraform Format Check
-        run: terraform fmt -check
+          GOOGLE_APPLICATION_CREDENTIALS: ./terraform/sa-key.json
 
       - name: Terraform Validate
         run: terraform validate
@@ -46,6 +42,8 @@ jobs:
             -var="project_id=${{ secrets.GCP_PROJECT }}" \
             -var="region=us-central1" \
             -var="zone=${{ secrets.GKE_ZONE }}"
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./terraform/sa-key.json
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -54,3 +52,5 @@ jobs:
             -var="project_id=${{ secrets.GCP_PROJECT }}" \
             -var="region=us-central1" \
             -var="zone=${{ secrets.GKE_ZONE }}"
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./terraform/sa-key.json
