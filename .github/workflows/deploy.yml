@@ -7,7 +7,8 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   IMAGE_NAME: nginx-custom
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
-  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  GKE_REGION: ${{ secrets.GKE_ZONE }}
+  GKE_ZONE: us-central1-a
 
 jobs:
   deploy:
@@ -38,7 +39,7 @@ jobs:
       - name: Get GKE Credentials
         run: |
           gcloud components update
-          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE" --project "$PROJECT_ID"
+          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_REGION" --project "$PROJECT_ID"
 
       - name: Build and Push Docker Image
         run: |
