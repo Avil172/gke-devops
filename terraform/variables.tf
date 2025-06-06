@@ -1,15 +1,16 @@
 variable "project_id" {
-  description = "GCP project ID"
+  description = "The GCP project ID"
   type        = string
 }
 
 variable "region" {
-  description = "GCP region"
+  description = "The GCP region"
   type        = string
+  default     = "us-central1"
 }
 
 variable "zone" {
-  description = "GCP zone (will default if invalid)"
+  description = "The GCP zone"
   type        = string
-  default     = "us-central1-a"
+  default     = "us-central1-a" # fallback to a valid zone
 }

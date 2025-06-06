@@ -1,4 +1,9 @@
 terraform {
+  backend "gcs" {
+    bucket = "tf-state-gke-devops"
+    prefix = "terraform/state"
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -6,24 +11,20 @@ terraform {
     }
   }
 
-  backend "gcs" {
-    bucket = "tf-state-gke-devops"
-    prefix = "terraform/state"
-  }
+  required_version = ">= 1.3.0"
 }
 
 provider "google" {
-  credentials = file("sa-key.json")
+  credentials = null
   project     = var.project_id
   region      = var.region
-  zone        = var.zone != "" && var.zone != "***" ? var.zone : "us-central1-a"
+  zone        = var.zone
 }
 
 resource "google_compute_instance" "practice_vm" {
   name         = "practice-vm"
   machine_type = "e2-micro"
-  zone         = var.zone != "" && var.zone != "***" ? var.zone : "us-central1-a"
-  tags         = ["dev"]
+  zone         = var.zone
 
   boot_disk {
     initialize_params {
@@ -32,17 +33,14 @@ resource "google_compute_instance" "practice_vm" {
   }
 
   network_interface {
-    network = "default"
+    network       = "default"
     access_config {}
   }
 
-  metadata = {
-    ssh-keys = "terraform:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD..."
-  }
+  tags = ["dev"]
 }
 
 data "google_compute_instance" "practice_vm" {
   name = google_compute_instance.practice_vm.name
-  zone = google_compute_instance.practice_vm.zone
+  zone = var.zone
 }
-
