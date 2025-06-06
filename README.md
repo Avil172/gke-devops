@@ -23,8 +23,6 @@ Includes screenshots of:
 - Pods
 - Deployments
 - Services
-- ReplicaSets
-
 ---
 
 ## ✅ 3. Proof of Web Server Exposure
@@ -32,7 +30,8 @@ Includes screenshots of:
 > **Requirement:** Show that the webserver is accessible, either via a public URL or a screenshot including the browser’s address bar.
 
 ### Option A: Public URL
-🌐 **[http://your-public-url.com](http://your-public-url.com)** _(Replace with actual URL if public)_
+🌐 **[http://34.58.249.65/](http://34.58.249.65/)**
+    -   (Method used to expose : Loadbalancer)
 
 ### Option B: Screenshot (if not public)
 🖼️ **[Web Server Screenshot with Address Bar](./screenshots/webserver/webserver-proof.png)**
@@ -60,8 +59,12 @@ Workflow implemented using:
 🖼️ **[View CI/CD Screenshots](./screenshots/ci-cd/)**  
 Includes:
 - Successful build pipelines
-- Deployment logs
-- Artifact publication (if applicable)
+- Deployment logs(see section below)
+
+🔗 **Live Pipeline Runs / Logs:**
+- ✅ [GitHub Actions - Deploy to Kubernetes(GKE)](https://github.com/Avil172/gke-devops/actions/runs/15488597518/job/43608814167)
+- ✅ [GitHub Actions - Terraform](https://github.com/Avil172/gke-devops/actions/runs/15488727060)
+
 
 ---
 
