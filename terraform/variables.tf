@@ -1,21 +1,22 @@
 variable "project_id" {
-  description = "The GCP project ID"
+  description = "GCP Project ID"
   type        = string
 }
 
-variable "credentials" {
-  description = "GCP service account key"
+variable "zone" {
+  description = "GCP Zone"
   type        = string
+  default     = "us-central1-a"
 }
 
 variable "region" {
-  description = "GCP region"
+  description = "GCP Region"
   type        = string
   default     = "us-central1"
 }
 
-variable "zone" {
-  description = "GCP zone"
+variable "credentials" {
+  description = "GCP Service Account Key"
   type        = string
-  default     = "us-central1-a"
+  sensitive   = true
 }

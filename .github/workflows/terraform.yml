@@ -1,42 +1,52 @@
-name: Terraform
+name: Terraform CI
 
 on:
   workflow_dispatch:
+
+env:
+  TF_VERSION: 1.5.0
+  GCP_REGION: us-central1
 
 jobs:
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Setup GCP Auth
+        id: auth
+        run: |-
+          echo "${{ secrets.GCP_SA_KEY }}" > credentials.json
+          echo "GCP_SA_KEY_PATH=credentials.json" >> $GITHUB_ENV
 
       - name: Terraform Init
-        id: init
-        run: terraform init -input=false
+        run: terraform init
         working-directory: ./terraform
         env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_CREDENTIALS: ${{ env.GCP_SA_KEY_PATH }}
 
       - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan \
-            -input=false \
-            -var="project_id=${{ secrets.GCP_PROJECT }}" \
-            -var="credentials='${{ secrets.GCP_SA_KEY }}'" \
-            -var="zone=${{ secrets.GKE_ZONE }}"
+        run: terraform plan
         working-directory: ./terraform
         env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_CREDENTIALS: ${{ env.GCP_SA_KEY_PATH }}
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT }}
+          TF_VAR_zone: ${{ secrets.GKE_ZONE }}
 
       - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT }}" -var="credentials=${{ secrets.GCP_SA_KEY }}" -var="zone=${{ secrets.GKE_ZONE }}"
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
         working-directory: ./terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ env.GCP_SA_KEY_PATH }}
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT }}
+          TF_VAR_zone: ${{ secrets.GKE_ZONE }}
