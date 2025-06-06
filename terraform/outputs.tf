@@ -1,14 +1,19 @@
-output "vm_name" {
-  value       = data.google_compute_instance.vm_data.name
-  description = "The name of the created VM"
+output "instance_name" {
+  description = "The name of the compute instance"
+  value       = google_compute_instance.practice_vm.name
 }
 
-output "vm_external_ip" {
-  value       = data.google_compute_instance.vm_data.network_interface[0].access_config[0].nat_ip
-  description = "The external IP of the VM"
+output "instance_zone" {
+  description = "The zone of the compute instance"
+  value       = google_compute_instance.practice_vm.zone
 }
 
-output "vm_status" {
-  value       = data.google_compute_instance.vm_data.status
-  description = "The status of the VM"
+output "instance_self_link" {
+  description = "The self-link of the compute instance"
+  value       = data.google_compute_instance.practice_vm.self_link
+}
+
+output "instance_external_ip" {
+  description = "The external IP address of the instance"
+  value       = data.google_compute_instance.practice_vm.network_interface[0].access_config[0].nat_ip
 }

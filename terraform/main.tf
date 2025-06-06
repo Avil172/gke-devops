@@ -1,5 +1,28 @@
-resource "google_compute_instance" "default" {
-  name         = "minimal-vm-${random_id.suffix.hex}"
+terraform {
+  backend "gcs" {
+    bucket = "tf-state-gke-devops"
+    prefix = "terraform/state"
+  }
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+
+  required_version = ">= 1.3.0"
+}
+
+provider "google" {
+  credentials = file("sa-key.json")
+  project     = var.project_id
+  region      = var.region
+  zone        = var.zone
+}
+
+resource "google_compute_instance" "practice_vm" {
+  name         = "practice-vm"
   machine_type = "e2-micro"
   zone         = var.zone
 
@@ -10,16 +33,14 @@ resource "google_compute_instance" "default" {
   }
 
   network_interface {
-    network = "default"
-    access_config {} // Ephemeral IP
+    network       = "default"
+    access_config {}
   }
 
-  scheduling {
-    preemptible       = true
-    automatic_restart = false
-  }
+  tags = ["dev"]
 }
 
-resource "random_id" "suffix" {
-  byte_length = 4
+data "google_compute_instance" "practice_vm" {
+  name = google_compute_instance.practice_vm.name
+  zone = var.zone
 }

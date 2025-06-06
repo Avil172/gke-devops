@@ -1,48 +1,51 @@
-name: Terraform
+name: Terraform CI
 
 on:
-  workflow_dispatch:
-
-env:
-  TF_VAR_project_id: ${{ secrets.GCP_PROJECT }}
-  TF_VAR_zone: ${{ secrets.GKE_ZONE }}
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   terraform:
+    name: Terraform
     runs-on: ubuntu-latest
-    timeout-minutes: 10  # Prevent infinite hangs
+    defaults:
+      run:
+        working-directory: ./terraform
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_wrapper: false  # Important for GCP auth
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.0
 
-    - name: Setup GCP Auth
-      id: auth
-      run: |
-        echo '${{ secrets.GCP_SA_KEY }}' > sa_key.json
-        echo "GOOGLE_APPLICATION_CREDENTIALS=sa_key.json" >> $GITHUB_ENV
-      working-directory: ./terraform
+      - name: Create SA key file
+        run: echo '${{ secrets.GCP_SA_KEY }}' > ./terraform/sa-key.json
 
-    - name: Terraform Init
-      run: terraform init -input=false
-      working-directory: ./terraform
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: sa_key.json
+      - name: Terraform Init
+        run: terraform init -reconfigure
 
-    - name: Terraform Validate
-      run: terraform validate
-      working-directory: ./terraform
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: sa_key.json
+      - name: Terraform Format Check
+        run: terraform fmt -check
 
-    - name: Terraform Plan
-      run: terraform plan -input=false -no-color
-      working-directory: ./terraform
-      timeout-minutes: 5  # Fail fast if stuck
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: sa_key.json
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -var="project_id=${{ secrets.GCP_PROJECT }}" \
+            -var="region=us-central1" \
+            -var="zone=${{ secrets.GKE_ZONE }}"
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          terraform apply -auto-approve \
+            -var="project_id=${{ secrets.GCP_PROJECT }}" \
+            -var="region=us-central1" \
+            -var="zone=${{ secrets.GKE_ZONE }}"
