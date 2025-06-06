@@ -18,21 +18,20 @@ jobs:
 
     - name: Configure GCP Credentials
       run: |
-        mkdir -p ~/.config/gcloud
-        echo '${{ secrets.GCP_SA_KEY }}' > ~/.config/gcloud/credentials.json
-        echo "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/credentials.json" >> $GITHUB_ENV
+        mkdir -p $HOME/.config/gcloud
+        echo '${{ secrets.GCP_SA_KEY }}' > $HOME/.config/gcloud/credentials.json
+        echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/credentials.json" >> $GITHUB_ENV
 
     - name: Terraform Init
       run: terraform init
       working-directory: ./terraform
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ~/.config/gcloud/credentials.json
+        GOOGLE_APPLICATION_CREDENTIALS: $HOME/.config/gcloud/credentials.json
 
     - name: Terraform Plan
       run: terraform plan -var="project_id=${{ secrets.GCP_PROJECT }}" -var="zone=${{ secrets.GKE_ZONE }}"
       working-directory: ./terraform
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -var="project_id=${{ secrets.GCP_PROJECT }}" -var="zone=${{ secrets.GKE_ZONE }}"
       working-directory: ./terraform
