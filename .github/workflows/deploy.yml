@@ -1,4 +1,4 @@
-name: Build & Deploy Custom NGINX
+name: GKE Deploy via Helm
 
 on:
   workflow_dispatch:
@@ -6,39 +6,43 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   IMAGE_NAME: nginx-custom
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Authenticate to GCP
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    - name: Set up Docker to use GCR
-      run: gcloud auth configure-docker
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
 
-    - name: Build Docker image
-      run: |
-        IMAGE_TAG=$(date +%Y%m%d%H%M%S)
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG .
-        docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG
+      - name: Configure Docker to use GCR
+        run: gcloud auth configure-docker --quiet
 
-    - name: Get GKE credentials
-      uses: google-github-actions/get-gke-credentials@v2
-      with:
-        cluster_name: ${{ secrets.GKE_CLUSTER }}
-        location: ${{ secrets.GKE_ZONE }}
-        project_id: ${{ secrets.GCP_PROJECT }}
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
 
-    - name: Deploy via Helm
-      run: |
-        helm upgrade --install nginx-app ./charts/nginx-app \
-          --set image.repository=gcr.io/$PROJECT_ID/$IMAGE_NAME \
-          --set image.tag=$IMAGE_TAG
+      - name: Get GKE Credentials
+        run: gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE" --project "$PROJECT_ID"
+
+      - name: Build and Push Docker Image to GCR
+        run: |
+          IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG .
+          docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Deploy to GKE via Helm
+        run: |
+          helm upgrade --install nginx-app ./charts/nginx-app \
+            --set image.repository=gcr.io/$PROJECT_ID/$IMAGE_NAME \
+            --set image.tag=$IMAGE_TAG
