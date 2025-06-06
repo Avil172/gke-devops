@@ -25,24 +25,31 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Configure Docker to use GCR
+      - name: Configure Docker
         run: gcloud auth configure-docker --quiet
 
-      - name: Set up kubectl
+      - name: Set up kubectl and Helm
         uses: azure/setup-kubectl@v3
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
 
       - name: Get GKE Credentials
         run: gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE" --project "$PROJECT_ID"
 
-      - name: Build and Push Docker Image to GCR
+      - name: Build and Push Docker Image
         run: |
           IMAGE_TAG=$(date +%Y%m%d%H%M%S)
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           docker build -t gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG .
           docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:$IMAGE_TAG
 
+      - name: Verify Helm chart
+        run: helm lint ./charts/nginx-app
+
       - name: Deploy to GKE via Helm
         run: |
           helm upgrade --install nginx-app ./charts/nginx-app \
             --set image.repository=gcr.io/$PROJECT_ID/$IMAGE_NAME \
-            --set image.tag=$IMAGE_TAG
+            --set image.tag=$IMAGE_TAG \
+            --atomic \
+            --wait
