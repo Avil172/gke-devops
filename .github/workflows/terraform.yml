@@ -30,6 +30,9 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -reconfigure
+        env:
+            GOOGLE_APPLICATION_CREDENTIALS: ./terraform/sa-key.json
+
 
       - name: Terraform Format Check
         run: terraform fmt -check
