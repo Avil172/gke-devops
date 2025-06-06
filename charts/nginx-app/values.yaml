@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: gcr.io/YOUR_PROJECT_ID/nginx-custom
+  repository: gcr.io/PROJECT_ID/nginx-custom
   tag: latest
   pullPolicy: IfNotPresent
 
