@@ -49,8 +49,9 @@ jobs:
 
       - name: Deploy to GKE via Helm
         run: |
-          helm upgrade --install nginx-app ./charts/nginx-app \
+            helm upgrade --install nginx-app ./charts/nginx-app \
             --set image.repository=gcr.io/$PROJECT_ID/$IMAGE_NAME \
             --set image.tag=$IMAGE_TAG \
+            --set fullnameOverride=nginx-app \
             --atomic \
             --wait
